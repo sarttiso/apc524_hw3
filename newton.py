@@ -5,6 +5,7 @@
 
 import numpy as N
 import functions as F
+import pdb
 
 class Newton(object):
     def __init__(self, f, tol=1.e-6, maxiter=20, dx=1.e-6):
@@ -20,6 +21,7 @@ class Newton(object):
     def solve(self, x0):
         """Return a root of f(x) = 0, using Newton's method, starting from
         initial guess x0"""
+        # pdb.set_trace()
         x = x0
         for i in xrange(self._maxiter):
             fx = self._f(x)
@@ -31,8 +33,9 @@ class Newton(object):
     def step(self, x, fx=None):
         """Take a single step of a Newton method, starting from x
         If the argument fx is provided, assumes fx = f(x)"""
+        # pdb.set_trace()
         if fx is None:
             fx = self._f(x)
         Df_x = F.ApproximateJacobian(self._f, x, self._dx)
         h = N.linalg.solve(N.matrix(Df_x), N.matrix(fx))
-        return x + h
+        return x - h

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+
 import newton
 import unittest
 import numpy as N
+import pdb
 
 class TestNewton(unittest.TestCase):
     def testLinear(self):
