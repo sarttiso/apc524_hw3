@@ -6,7 +6,6 @@
 import numpy as N
 import numpy.matlib
 import functions as F
-import pdb
 
 class Newton(object):
     def __init__(self, f, tol=1.e-6, maxiter=20, dx=1.e-6, Df=None, r=float('inf')):
@@ -27,9 +26,8 @@ class Newton(object):
         x = x0
         for i in xrange(self._maxiter):
             fx = self._f(x)
-#            pdb.set_trace()
-            if N.sum(N.abs(fx) < self._tol) == len(N.matrix(fx)):
-                return x
+            if N.linalg.norm(fx) < self._tol:
+                return N.asmatrix(x)
             x = self.step(x, fx)
             if N.linalg.norm(x-x0) > self._r:
                 raise RuntimeError('Left search radius r before finding root')

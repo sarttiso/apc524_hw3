@@ -78,9 +78,10 @@ class TestFunctions(unittest.TestCase):
         
     def testVortex2DJac(self):
         f = F.Vortex2DJac()
-        N.testing.assert_array_equal(f(),N.matrix('0,-1;1,0'))
+        x = N.matrix('1;1')
+        N.testing.assert_array_equal(f(x),N.matrix('0,1;-1,0'))
             
-    def testJacobians(self):
+    def testCompareJacobians(self):
         x = 1.
         # Linear case
         linearPoly = F.Polynomial([1.,1.])
@@ -88,20 +89,17 @@ class TestFunctions(unittest.TestCase):
         dfLinearAna = F.PolynomialJac([1.,1.])
         N.testing.assert_array_almost_equal(dfLinearAna(x),dfLinearApp)
         # Quadratic case
-        f = lambda x : x**2
-        dfQuadraticAna = lambda x : N.matrix(2*x)
+        f = F.Polynomial([1.,0.,0.])
+        dfQuadraticAna = F.Polynomial([2.,0.])
         dfQuadraticApp = F.ApproximateJacobian(f,x)
         N.testing.assert_array_almost_equal(dfQuadraticAna(x),dfQuadraticApp)
-        # Multivariate linear
+        # Linear map
         x0 = N.matrix("1.;1.")
-        def fm(x):
-            f0 = x[0]-x[1]
-            f1 = x[0]+x[1]
-            return N.concatenate((f0,f1),axis=0)
-        def dfmAna(x):
-            return N.matrix([[1.,-1.],[1.,1.]])
-        dfmApp = F.ApproximateJacobian(fm,x0)
-        N.testing.assert_array_almost_equal(dfmAna(x0),dfmApp)
+        A = N.matrix('1,-1;1,1')
+        l = F.LinearMap(A)
+        dlAna = F.LinearMapJac(A)
+        dlApp = F.ApproximateJacobian(l,x0)
+        N.testing.assert_array_almost_equal(dlAna(x0),dlApp)
     
             
 

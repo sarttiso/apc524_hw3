@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import newton
 import unittest
 import functions as F
@@ -12,10 +11,10 @@ class TestNewton(unittest.TestCase):
         solver = newton.Newton(f, tol=1.e-10, maxiter=4, dx=1.e-5)
         x = solver.solve(2.0)
         self.assertEqual(x, -2.0)
-#        
+        
     def testLinearAnalyticDf(self):
         f = F.Polynomial([3,6])
-        df = lambda x : 3.0
+        df = F.Polynomial([3])
         solver = newton.Newton(f, tol=1.e-10, maxiter=4, dx=1.e-5, Df=df)
         x = solver.solve(2.0)
         self.assertEqual(x, -2.0)
@@ -38,7 +37,14 @@ class TestNewton(unittest.TestCase):
         solver = newton.Newton(f, tol=1.e-10, maxiter=20, dx=1.e-5)
         x = solver.solve(1.0)
         self.assertAlmostEqual(x, 0.0,4)
-#        
+        
+    def testSinusoid1DAnalyticDf(self):
+        f = F.Sinusoid1D()
+        df = F.Sinusoid1DJac()
+        solver = newton.Newton(f, tol=1.e-10, maxiter=20, dx=1.e-5, Df=df)
+        x = solver.solve(1.0)
+        self.assertAlmostEqual(x, 0.0,4)
+        
     def testLinearMap(self):
         A = N.matrix("1. 2.; 3. 4.")
         x0 = N.matrix("1.;2.")
@@ -54,34 +60,40 @@ class TestNewton(unittest.TestCase):
         x = solver.solve(x0)
         N.testing.assert_array_almost_equal(x,N.matlib.zeros((2,1)))
         
-    def testBivariateQuadratic(self):
-        x0 = N.matrix("1.;2.")
-        def f(x):
-            f0 = x[0]*x[0]
-            f1 = x[1]*x[1]
-            return N.concatenate((f0,f1),axis=0)
-        solver = newton.Newton(f, tol=1.e-15, maxiter=60)
+    def testVortex2DAnalyticDf(self):
+        x0 = N.matrix('1;1')
+        f = F.Vortex2D()
+        df = F.Vortex2DJac()
+        solver = newton.Newton(f,tol=1.e-10, maxiter=50, Df=df)
         x = solver.solve(x0)
-        N.testing.assert_array_almost_equal(x, N.matlib.zeros((2,1)))
+        N.testing.assert_array_almost_equal(x,N.matlib.zeros((2,1)))
         
-#    def testBivariateQuadraticAnalyticDf(self):
-#        x0 = N.matrix("1.;2.")
-#        def f(x):
-#            f0 = x[0]*x[0]
-#            f1 = x[1]*x[1]
-#            return N.concatenate((f0,f1),axis=0)
-#        def df(x):
-#            return N.matrix([[2.0*x[0,0],0],[0,2.0*x[1,0]]])
-#        solver = newton.Newton(f, tol=1.e-10, maxiter=19, Df=df)
-#        x = solver.solve(x0)
-#        N.testing.assert_array_almost_equal(x, N.matlib.zeros((2,1)))
-#    
-    def testRadius(self):
-        f = F.Polynomial([1,1,0,0])
+    def testUsageOfAnalyticDF(self):
+        f = F.Polynomial([1.,0.,0.])
+        # incorrect jacobian
+        df = F.Polynomial([0.])
+        solver = newton.Newton(f,tol=1.e-10, maxiter=50, Df=df)
+        try: x = solver.solve(1.0)
+        except RuntimeError:
+            pass
+
+    def testRadiusLinear(self):
+        f = F.Polynomial([1,0])
+        # outside of search radius of root
         x0 = 5.0
-        solver = newton.Newton(f, tol=1.e-10, maxiter=30, dx=1.e-5, r=5.)
-        x = solver.solve(x0)
-        self.assertAlmostEqual(x, 0.0, 4)
+        solver = newton.Newton(f, tol=1.e-10, maxiter=30, dx=1.e-5, r=4.)
+        try: x = solver.solve(x0)
+        except RuntimeError:
+            pass
+        
+    def testRadiusQuadratic(self):
+        f = F.Polynomial([1,0,0])
+        # outside of search radius of root
+        x0 = 5.0
+        solver = newton.Newton(f, tol=1.e-10, maxiter=30, dx=1.e-5, r=4.)
+        try: x = solver.solve(x0)
+        except RuntimeError:
+            pass
 
 if __name__ == "__main__":
     unittest.main()
